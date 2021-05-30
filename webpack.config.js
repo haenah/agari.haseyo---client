@@ -25,7 +25,7 @@ const config = {
 /** @type {import('webpack-dev-server').Configuration} */
 const devServerConfig = {
   contentBase: path.join(__dirname, 'dist'),
-  port: 8080,
+  port: 3000,
   historyApiFallback: true,
 };
 
