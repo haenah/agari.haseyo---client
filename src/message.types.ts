@@ -1,4 +1,4 @@
-import { Position } from './types/model.types';
+import { Position } from './types/common.types';
 
 // Outgoing Message
 export const POSITION_CHANGED = 'POSITION_CHANGED';

@@ -1,5 +1,6 @@
 import $ from 'jquery';
-import { enterGame } from './game';
+import { Game } from './game';
+import { getFormValues } from './utils/form';
 
 function resolveCanvasContext() {
   const canvas = $('#game').get(0) as HTMLCanvasElement;
@@ -8,14 +9,17 @@ function resolveCanvasContext() {
   window._mainContext = context;
 }
 
-function hydrateHome() {
-  $('#enter-game').on('submit', (e) => {
+function hydrateForm() {
+  $('#enter-game').on('submit', function (e) {
     e.preventDefault();
-    enterGame();
+    const formValues = getFormValues<{ username: string }>(this as HTMLFormElement);
+    const game = new Game(formValues.username, console.log);
+    game.start();
+    $('#home-wrapper').remove();
   });
 }
 
 export function init() {
   resolveCanvasContext();
-  hydrateHome();
+  hydrateForm();
 }

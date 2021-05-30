@@ -1,4 +1,4 @@
-import { Prey, User } from '../model.types';
+import { Prey, User } from '../common.types';
 
 export const JOIN = 'JOIN';
 export const OBJECTS = 'OBJECTS';
@@ -23,7 +23,7 @@ interface ObjectsMessage {
 }
 
 interface MergedMessage {
-  type: typeof JOIN;
+  type: typeof MERGED;
   body: {
     user_after_merge: User;
     colony_id: string;
@@ -31,12 +31,12 @@ interface MergedMessage {
 }
 
 interface WasMergedMessage {
-  type: typeof JOIN;
+  type: typeof WAS_MERGED;
   body: {};
 }
 
 interface EatedMessage {
-  type: typeof JOIN;
+  type: typeof EATED;
   body: {
     user_after_eat: User;
     prey_id: string;
@@ -44,7 +44,7 @@ interface EatedMessage {
 }
 
 interface SeedMessage {
-  type: typeof JOIN;
+  type: typeof SEED;
   body: {
     new_preys: Prey[];
   };
