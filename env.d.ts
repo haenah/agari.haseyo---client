@@ -1,3 +1,3 @@
 interface Window {
-  _mainContext: WebGLRenderingContext;
+  _mainContext: CanvasRenderingContext2D;
 }

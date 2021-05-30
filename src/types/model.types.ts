@@ -15,4 +15,3 @@ export interface Prey {
   position: Position;
   radius: number;
 }
-
