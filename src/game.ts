@@ -49,8 +49,7 @@ export class Game {
     this.intervalId = setInterval(() => {
       const { me } = this;
       if (!me) return;
-      const [x, y] = MouseTracker.position;
-      const vector = minus({ x, y }, getClientCenter());
+      const vector = minus(MouseTracker.position, getClientCenter());
       const nextPosition = linearComb(me.position, 1, vector, SPEED / abs(vector));
 
       sendMessage({

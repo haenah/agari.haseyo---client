@@ -1,4 +1,5 @@
 import $ from 'jquery';
+import { Position } from './types/common.types';
 
 enum MouseTrackerState {
   ON,
@@ -7,7 +8,7 @@ enum MouseTrackerState {
 class _MouseTracker {
   private state: MouseTrackerState = MouseTrackerState.OFF;
   /** x, y */
-  position: [number, number] = [0, 0];
+  position: Position = { x: 0, y: 0 };
   start() {
     this.state === MouseTrackerState.OFF &&
       $('#game').get(0).addEventListener('mousemove', this.updatePosition);
@@ -17,7 +18,7 @@ class _MouseTracker {
       $('#game').get(0).removeEventListener('mousemove', this.updatePosition);
   }
   updatePosition = ({ offsetX, offsetY }: MouseEvent) => {
-    this.position = [offsetX, offsetY];
+    this.position = { x: offsetX, y: offsetY };
   };
 }
 
