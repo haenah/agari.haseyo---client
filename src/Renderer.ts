@@ -1,6 +1,6 @@
 import { MY_SIZE } from './constants';
 import { Game } from './game';
-import { canvas, ctx, drawCircle, getClientCenter } from './utils/canvas';
+import { canvas, clear, ctx, drawCircle, getClientCenter } from './utils/canvas';
 import { linearComb, minus } from './utils/vector';
 
 export class Renderer {
@@ -18,36 +18,21 @@ export class Renderer {
 
   private _render = () => {
     const {
-      clear,
       game: { users, me, preys },
     } = this;
     if (!me) return;
-    clear();
     const { position: mePosition, radius: meRadius, color: meColor, id: meId } = me;
     const scale = MY_SIZE / meRadius,
-      clientCenter = getClientCenter();
-    preys.forEach(({ position, radius, color }) =>
-      drawCircle(
-        linearComb(minus(position, mePosition), scale, clientCenter, 1),
-        radius * scale,
-        color
-      )
-    );
+      offset = linearComb(getClientCenter(), 1, mePosition, -scale);
+    ctx.resetTransform();
+    clear();
+    ctx.transform(scale, 0, 0, scale, offset.x, offset.y);
+    preys.forEach(({ position, radius, color }) => drawCircle(position, radius, color));
     users.forEach(
-      ({ id, position, radius, color }) =>
-        meId !== id &&
-        drawCircle(
-          linearComb(minus(position, mePosition), scale, clientCenter, 1),
-          radius * scale,
-          color
-        )
+      ({ id, position, radius, color }) => meId !== id && drawCircle(position, radius, color)
     );
-    drawCircle(clientCenter, MY_SIZE, meColor);
+    drawCircle(mePosition, meRadius, meColor);
     this.isRendering = false;
-  };
-
-  clear = () => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
   };
 }
 
