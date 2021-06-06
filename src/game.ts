@@ -1,10 +1,11 @@
-import { FRAME_DURATION, WS_URL } from './constants';
+import { BOARD_HEIGHT, BOARD_WIDTH, FRAME_DURATION, WS_URL } from './constants';
 import { IncomingMessage, OutgoingMessage } from './types/message';
 import { Prey, User } from './types/common.types';
 import * as uuid from 'uuid';
 import MouseTracker from './MouseTracker';
 import Renderer from './Renderer';
 import { distance } from './utils/math';
+import { canvas } from '.';
 
 export class Game {
   constructor(
@@ -12,9 +13,13 @@ export class Game {
     private username: string,
     /** 게임 종료 시 콜백 */
     private onFinish: () => void
-  ) {}
+  ) {
+    this.renderer = new Renderer(this);
+  }
   /** 웹소켓 커넥션 */
   private connection: WebSocket | null = null;
+  /** 렌더러 */
+  private renderer: Renderer;
   /** 나의 id */
   private id: string = '';
   /** 필드에 존재하는 유저들 */
@@ -44,7 +49,12 @@ export class Game {
 
       sendMessage({
         type: 'POSITION_CHANGED',
-        body: { position: { x, y } },
+        body: {
+          position: {
+            x: (x / canvas.clientWidth) * BOARD_WIDTH,
+            y: (y / canvas.clientHeight) * BOARD_HEIGHT,
+          },
+        },
       });
     }, FRAME_DURATION);
 
@@ -63,7 +73,7 @@ export class Game {
   };
 
   handleMessage = ({ data }: MessageEvent) => {
-    const { checkEat, finish } = this;
+    const { renderer, checkEat, finish } = this;
     const message = JSON.parse(data) as IncomingMessage;
     switch (message.type) {
       case 'OBJECTS':
@@ -84,7 +94,7 @@ export class Game {
       case 'SEED':
         break;
     }
-    Renderer.render(this);
+    renderer.render();
   };
 
   sendMessage = (payload: OutgoingMessage) => {

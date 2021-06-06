@@ -8,10 +8,12 @@ export interface User {
   username: string;
   position: Position;
   radius: number;
+  color: string;
 }
 
 export interface Prey {
   /** uuid */ id: string;
   position: Position;
   radius: number;
+  color: string;
 }
