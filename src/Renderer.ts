@@ -11,20 +11,19 @@ export class Renderer {
   }
 
   private isRendering = false;
-  // TODO: requestAnimationFrame 이용하여 로드 분산
   render() {
-    requestAnimationFrame(this._render);
+    if (this.isRendering) return;
+    const timestamp = requestAnimationFrame(this._render);
   }
 
   private _render = () => {
+    this.isRendering = true;
     const {
       isRendering,
       drawCircle,
       clear,
       game: { users, preys },
     } = this;
-    if (isRendering) return;
-    this.isRendering = true;
     clear();
     preys.forEach(({ position, radius, color }) => drawCircle(position, radius, color));
     users.forEach(({ position, radius, color }) => drawCircle(position, radius, color));
