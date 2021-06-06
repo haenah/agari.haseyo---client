@@ -13,13 +13,12 @@ export class Renderer {
   private isRendering = false;
   render() {
     if (this.isRendering) return;
-    const timestamp = requestAnimationFrame(this._render);
+    this.isRendering = true;
+    requestAnimationFrame(this._render);
   }
 
   private _render = () => {
-    this.isRendering = true;
     const {
-      isRendering,
       drawCircle,
       clear,
       game: { users, preys },
