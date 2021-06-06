@@ -5,7 +5,7 @@ import * as uuid from 'uuid';
 import MouseTracker from './MouseTracker';
 import Renderer from './Renderer';
 import { abs, distance, linearComb, minus } from './utils/vector';
-import { getClientCenter } from './utils/canvas';
+import { getClientCenter, resizeCanvasHandler } from './utils/canvas';
 
 export class Game {
   constructor(
@@ -44,6 +44,9 @@ export class Game {
     // Incoming message handl성
     connection.onmessage = handleMessage;
 
+    // Canvas resizer
+    window.addEventListener('resize', resizeCanvasHandler);
+
     // Outgoing message handle
     MouseTracker.start();
     this.intervalId = setInterval(() => {
@@ -72,6 +75,7 @@ export class Game {
     MouseTracker.stop();
     this.intervalId && clearInterval(this.intervalId);
     document.removeEventListener('keydown', this.bindKeys);
+    window.removeEventListener('resize', resizeCanvasHandler);
     this.onFinish();
   };
 

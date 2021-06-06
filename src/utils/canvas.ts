@@ -2,6 +2,8 @@ import { Position } from '../types/common.types';
 import $ from 'jquery';
 
 export const canvas = $('#game').get(0) as HTMLCanvasElement;
+canvas.width = canvas.clientWidth;
+canvas.height = canvas.clientHeight;
 const _ctx = canvas.getContext('2d');
 if (_ctx == null) {
   throw new Error('canvas_not_compatible');
@@ -24,4 +26,9 @@ export function getClientCenter(): Position {
     x: canvas.clientWidth / 2,
     y: canvas.clientHeight / 2,
   };
+}
+
+export function resizeCanvasHandler() {
+  canvas.width = canvas.clientWidth;
+  canvas.height = canvas.clientHeight;
 }
