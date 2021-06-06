@@ -4,7 +4,7 @@ import { Prey, User } from './types/common.types';
 import * as uuid from 'uuid';
 import MouseTracker from './MouseTracker';
 import Renderer from './Renderer';
-import $ from 'jquery';
+import { distance } from './utils/math';
 
 export class Game {
   constructor(
@@ -18,13 +18,13 @@ export class Game {
   /** 나의 id */
   private id: string = '';
   /** 필드에 존재하는 유저들 */
-  private users: User[] = [];
+  users: User[] = [];
   /** 필드에 존재하는 먹이들 */
-  private preys: Prey[] = [];
+  preys: Prey[] = [];
 
   private intervalId: ReturnType<typeof setTimeout> | null = null;
 
-  start() {
+  start = () => {
     const { username, handleMessage, sendMessage } = this;
 
     // 커넥션 생성
@@ -41,7 +41,6 @@ export class Game {
     MouseTracker.start();
     this.intervalId = setInterval(() => {
       const [x, y] = MouseTracker.position;
-      console.log(MouseTracker.position);
 
       sendMessage({
         type: 'POSITION_CHANGED',
@@ -50,25 +49,27 @@ export class Game {
     }, FRAME_DURATION);
 
     // 키바인딩
-    $(document).on('keydown', (e) => e.key === 'q' && this.finish());
-  }
+    document.addEventListener('keydown', this.bindKeys);
+  };
 
-  finish() {
+  finish = () => {
     this.users = [];
     this.preys = [];
     this.connection?.close();
     MouseTracker.stop();
     this.intervalId && clearInterval(this.intervalId);
+    document.removeEventListener('keydown', this.bindKeys);
     this.onFinish();
-  }
+  };
 
-  handleMessage({ data }: MessageEvent) {
-    const { finish } = this;
+  handleMessage = ({ data }: MessageEvent) => {
+    const { checkEat, finish } = this;
     const message = JSON.parse(data) as IncomingMessage;
     switch (message.type) {
       case 'OBJECTS':
         this.users = message.body.users;
         this.preys = message.body.preys;
+        checkEat();
         break;
       case 'WAS_MERGED':
         finish();
@@ -84,9 +85,31 @@ export class Game {
         break;
     }
     Renderer.render(this);
-  }
+  };
 
   sendMessage = (payload: OutgoingMessage) => {
     this.connection?.send(JSON.stringify(payload));
+  };
+
+  bindKeys = (e: KeyboardEvent) => {
+    switch (e.key) {
+      case 'q':
+        this.finish();
+    }
+  };
+
+  checkEat = () => {
+    const { id, users, preys, sendMessage } = this;
+    const me = users.find((user) => user.id === id)!;
+    const eatenPrey = preys.find((prey) => distance(me, prey) < me.radius);
+    if (eatenPrey) {
+      sendMessage({ type: 'EAT', body: { prey_id: eatenPrey.id } });
+      return;
+    }
+    const overlaidUser = users.find((user) => distance(me, user) < me.radius);
+    if (overlaidUser && overlaidUser.radius < me.radius) {
+      sendMessage({ type: 'MERGE', body: { colony_id: overlaidUser.id } });
+      return;
+    }
   };
 }
