@@ -107,7 +107,12 @@ export class Game {
   };
 
   sendMessage = (payload: OutgoingMessage) => {
-    this.connection?.send(JSON.stringify(payload));
+    try {
+      this.connection?.send(JSON.stringify(payload));
+    } catch (error) {
+      console.error(error);
+      this.finish();
+    }
   };
 
   bindKeys = (e: KeyboardEvent) => {
@@ -125,7 +130,9 @@ export class Game {
       sendMessage({ type: 'EAT', body: { prey_id: eatenPrey.id } });
       return;
     }
-    const overlaidUser = users.find((user) => distance(me.position, user.position) < me.radius);
+    const overlaidUser = users.find(
+      (user) => user.id !== me.id && distance(me.position, user.position) < me.radius
+    );
     if (overlaidUser && overlaidUser.radius < me.radius) {
       sendMessage({ type: 'MERGE', body: { colony_id: overlaidUser.id } });
       return;
