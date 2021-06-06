@@ -1,11 +1,11 @@
-import { BOARD_HEIGHT, BOARD_WIDTH, SPEED, TICK_INTERVAL, WS_URL } from './constants';
+import { SPEED, TICK_INTERVAL, WS_URL } from './constants';
 import { IncomingMessage, OutgoingMessage } from './types/message';
-import { Position, Prey, User } from './types/common.types';
+import { Prey, User } from './types/common.types';
 import * as uuid from 'uuid';
 import MouseTracker from './MouseTracker';
 import Renderer from './Renderer';
-import { abs, distance } from './utils/math';
-import { canvas } from '.';
+import { abs, distance, linearComb, minus } from './utils/vector';
+import { getClientCenter } from './utils/canvas';
 
 export class Game {
   constructor(
@@ -26,6 +26,8 @@ export class Game {
   users: User[] = [];
   /** 필드에 존재하는 먹이들 */
   preys: Prey[] = [];
+  /** 자기 자신 */
+  me: User | undefined;
 
   private intervalId: ReturnType<typeof setTimeout> | null = null;
 
@@ -45,21 +47,16 @@ export class Game {
     // Outgoing message handle
     MouseTracker.start();
     this.intervalId = setInterval(() => {
-      const { users, id } = this;
-      const me = users.find((user) => user.id === id);
+      const { me } = this;
       if (!me) return;
       const [x, y] = MouseTracker.position;
-      const vector: Position = { x: x - canvas.clientWidth / 2, y: y - canvas.clientHeight / 2 };
-      const absVector = abs(vector);
-      const next: Position = {
-        x: me.position.x + (SPEED * vector.x) / absVector,
-        y: me.position.y + (SPEED * vector.y) / absVector,
-      };
+      const vector = minus({ x, y }, getClientCenter());
+      const nextPosition = linearComb(me.position, 1, vector, SPEED / abs(vector));
 
       sendMessage({
         type: 'POSITION_CHANGED',
         body: {
-          position: next,
+          position: nextPosition,
         },
       });
     }, TICK_INTERVAL);
@@ -71,6 +68,7 @@ export class Game {
   finish = () => {
     this.users = [];
     this.preys = [];
+    this.me = undefined;
     this.connection?.close();
     MouseTracker.stop();
     this.intervalId && clearInterval(this.intervalId);
@@ -79,14 +77,16 @@ export class Game {
   };
 
   handleMessage = ({ data }: MessageEvent) => {
-    const { renderer, checkEat, finish } = this;
+    const { id, renderer, checkEat, finish } = this;
     const message = JSON.parse(data) as IncomingMessage;
     switch (message.type) {
       case 'JOIN':
         this.users = [message.body.new_user];
+        this.me = this.users.find((user) => user.id === id);
         break;
       case 'OBJECTS':
         this.users = message.body.users;
+        this.me = this.users.find((user) => user.id === id);
         this.preys = message.body.preys;
         checkEat();
         break;
@@ -123,8 +123,8 @@ export class Game {
   };
 
   checkEat = () => {
-    const { id, users, preys, sendMessage } = this;
-    const me = users.find((user) => user.id === id)!;
+    const { me, users, preys, sendMessage } = this;
+    if (!me) return;
     const eatenPrey = preys.find((prey) => distance(me.position, prey.position) < me.radius);
     if (eatenPrey) {
       sendMessage({ type: 'EAT', body: { prey_id: eatenPrey.id } });
