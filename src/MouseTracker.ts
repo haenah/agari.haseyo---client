@@ -16,8 +16,8 @@ class _MouseTracker {
     this.state === MouseTrackerState.ON &&
       $('#game').get(0).removeEventListener('mousemove', this.updatePosition);
   }
-  updatePosition = (e: MouseEvent) => {
-    this.position = [e.offsetX, e.offsetY];
+  updatePosition = ({ offsetX, offsetY }: MouseEvent) => {
+    this.position = [offsetX, offsetY];
   };
 }
 
