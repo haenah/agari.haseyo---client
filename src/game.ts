@@ -4,7 +4,7 @@ import { Prey, User } from './types/common.types';
 import * as uuid from 'uuid';
 import MouseTracker from './MouseTracker';
 import Renderer from './Renderer';
-import { abs, distance, linearComb, minus } from './utils/vector';
+import { abs, distanceSquare, linearComb, minus } from './utils/vector';
 import { getClientCenter, resizeCanvasHandler } from './utils/canvas';
 
 export class Game {
@@ -128,13 +128,15 @@ export class Game {
   checkEat = () => {
     const { me, users, preys, sendMessage } = this;
     if (!me) return;
-    const eatenPrey = preys.find((prey) => distance(me.position, prey.position) < me.radius);
+    const eatenPrey = preys.find(
+      (prey) => distanceSquare(me.position, prey.position) < me.radius ** 2
+    );
     if (eatenPrey) {
       sendMessage({ type: 'EAT', body: { prey_id: eatenPrey.id } });
       return;
     }
     const overlaidUser = users.find(
-      (user) => user.id !== me.id && distance(me.position, user.position) < me.radius
+      (user) => user.id !== me.id && distanceSquare(me.position, user.position) < me.radius ** 2
     );
     if (overlaidUser && overlaidUser.radius < me.radius) {
       sendMessage({ type: 'MERGE', body: { colony_id: overlaidUser.id } });
