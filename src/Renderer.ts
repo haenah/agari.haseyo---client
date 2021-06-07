@@ -1,13 +1,9 @@
 import { MY_SIZE } from './constants';
 import { Game } from './game';
-import { canvas, clear, ctx, drawCircle, getClientCenter } from './utils/canvas';
-import { linearComb, minus } from './utils/vector';
+import { clear, ctx, drawCircle, getClientCenter } from './utils/canvas';
 
 export class Renderer {
-  constructor(private game: Game) {
-    canvas.width = canvas.clientWidth;
-    canvas.height = canvas.clientHeight;
-  }
+  constructor(private game: Game) {}
 
   private isRendering = false;
   render() {
@@ -23,10 +19,15 @@ export class Renderer {
     if (!me) return;
     const { position: mePosition, radius: meRadius, color: meColor, id: meId } = me;
     const scale = MY_SIZE / meRadius,
-      offset = linearComb(getClientCenter(), 1, mePosition, -scale);
+      clientCenter = getClientCenter();
     ctx.resetTransform();
     clear();
-    ctx.transform(scale, 0, 0, scale, offset.x, offset.y);
+    // 원점을 캔버스 중앙으로
+    ctx.translate(clientCenter.x, clientCenter.y);
+    // 스케일링
+    ctx.scale(scale, scale);
+    // 자신의 위치를 원점으로
+    ctx.translate(-mePosition.x, -mePosition.y);
     preys.forEach(({ position, radius, color }) => drawCircle(position, radius, color));
     users.forEach(
       ({ id, position, radius, color }) => meId !== id && drawCircle(position, radius, color)

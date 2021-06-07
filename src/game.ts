@@ -45,6 +45,7 @@ export class Game {
     connection.onmessage = handleMessage;
 
     // Canvas resizer
+    resizeCanvasHandler();
     window.addEventListener('resize', resizeCanvasHandler);
 
     // Outgoing message handle
